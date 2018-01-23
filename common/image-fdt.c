@@ -20,6 +20,8 @@
 #define CONFIG_SYS_FDT_PAD 0x3000
 #endif
 
+#define KERN_PHYS_OFFSET	0x40000000
+
 DECLARE_GLOBAL_DATA_PTR;
 
 static void fdt_error(const char *msg)
@@ -176,6 +178,9 @@ int boot_relocate_fdt(struct lmb *lmb, char **of_flat_tree, ulong *of_size)
 
 		printf("   Loading Device Tree to %p, end %p ... ",
 		       of_start, of_start + of_len - 1);
+
+		//loading device tree blob with an offset value
+		of_start += KERN_PHYS_OFFSET;
 
 		err = fdt_open_into(fdt_blob, of_start, of_len);
 		if (err != 0) {
