@@ -185,6 +185,9 @@
 	"sdboot=mmc dev $sdbootdev && mmcinfo && run uenvboot || run sdroot$sdbootdev; " \
 		"load mmc $sdbootdev:$partid $fdt_addr system.dtb && " \
 		"load mmc $sdbootdev:$partid $kernel_addr Image && " \
+		"mw 0xFF0A0244 0x00000318 && " \
+		"mw 0xFF0A0248 0x00000318 && " \
+		"mw 0xFF0A0044 0x00000008 && " \
 		"booti $kernel_addr - $fdt_addr\0" \
 	"emmcboot=run sdboot\0" \
 	"nandboot=nand info && nand read $fdt_addr $fdt_offset $fdt_size && " \
