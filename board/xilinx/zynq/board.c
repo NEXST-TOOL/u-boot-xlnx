@@ -9,6 +9,8 @@
 #include <fdtdec.h>
 #include <fpga.h>
 #include <mmc.h>
+#include <spi.h>
+#include <spi_flash.h>
 #include <wdt.h>
 #include <zynqpl.h>
 #include <asm/arch/hardware.h>
@@ -172,6 +174,28 @@ int zynq_board_read_rom_ethaddr(unsigned char *ethaddr)
 		printf("I2C EEPROM MAC address read failed\n");
 #endif
 
+#if defined(CONFIG_ZYNQ_QSPI) && \
+    defined(CONFIG_ZYNQ_GEM_SPI_MAC_OFFSET)
+#define CMD_OTPREAD_ARRAY_FAST		0x4b
+	struct spi_flash *flash;
+	flash = spi_flash_probe(CONFIG_SF_DEFAULT_BUS,
+				CONFIG_SF_DEFAULT_CS,
+				CONFIG_SF_DEFAULT_SPEED,
+				CONFIG_SF_DEFAULT_MODE);
+	if (!flash) {
+		printf("SPI(bus:%u cs:%u) probe failed\n",
+			CONFIG_SF_DEFAULT_BUS,
+			CONFIG_SF_DEFAULT_CS);
+		return 0;
+	}
+	/* set the cmd to otp read */
+	flash->read_cmd = CMD_OTPREAD_ARRAY_FAST;
+	if (spi_flash_read(flash, CONFIG_ZYNQ_GEM_SPI_MAC_OFFSET, 6, ethaddr))
+		printf("SPI MAC address read failed\n");
+
+	if (flash)
+		spi_flash_free(flash);
+#endif
 	return 0;
 }
 
