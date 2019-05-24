@@ -824,21 +824,21 @@
 		spi-tx-bus-width = <1>;
 		spi-rx-bus-width = <4>; /* FIXME also DUAL configuration possible */
 		spi-max-frequency = <108000000>; /* Based on DC1 spec */
-		partition@qspi-fsbl-uboot { /* for testing purpose */
+		partition@qspi-fsbl-uboot { /* including bitstream */
 			label = "qspi-fsbl-uboot";
-			reg = <0x0 0x100000>;
+			reg = <0x0 0x4000000>;
 		};
 		partition@qspi-linux { /* for testing purpose */
 			label = "qspi-linux";
-			reg = <0x100000 0x500000>;
+			reg = <0x4000000 0x500000>;
 		};
 		partition@qspi-device-tree { /* for testing purpose */
 			label = "qspi-device-tree";
-			reg = <0x600000 0x20000>;
+			reg = <0x4500000 0x20000>;
 		};
 		partition@qspi-rootfs { /* for testing purpose */
 			label = "qspi-rootfs";
-			reg = <0x620000 0x5E0000>;
+			reg = <0x4520000 0x5E0000>;
 		};
 	};
 };
