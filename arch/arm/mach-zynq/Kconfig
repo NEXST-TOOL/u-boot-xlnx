@@ -45,6 +45,10 @@ config SYS_VENDOR
 config SYS_SOC
 	default "zynq"
 
+config SYS_NO_FLASH
+	bool
+	default "y"
+
 config SYS_CONFIG_NAME
 	string "Board configuration name"
 	default "zynq-common"
@@ -65,6 +69,14 @@ config BOOT_INIT_FILE
 	help
 	  Add register writes to boot.bin format (max 256 pairs).
 	  Expect a table of register-value pairs, e.g. "0x12345678 0x4321"
+
+config ZYNQ_USB
+	bool
+	default "y"
+
+config ZYNQ_PS_CLK_FREQ
+	hex
+	default 0x02faf080
 
 config ZYNQ_M29EW_WB_HACK
 	bool "Zynq NOR hack"

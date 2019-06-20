@@ -10,9 +10,9 @@
 #ifndef __CONFIG_ZYNQ_PYNQZ1_H
 #define __CONFIG_ZYNQ_PYNQZ1_H
 
-#define CONFIG_SYS_NO_FLASH
+/* #define CONFIG_SYS_NO_FLASH */
 
-#define CONFIG_ZYNQ_USB
+/* #define CONFIG_ZYNQ_USB */
 #define CONFIG_ZYNQ_I2C0
 /*#define CONFIG_ZYNQ_I2C1
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	1
@@ -27,7 +27,7 @@
 #define CONFIG_ZYNQ_GEM_SPI_MAC_OFFSET	0x20
 
 /* Define Pynq-Z1 PS Clock Frequency to 50MHz */
-#define CONFIG_ZYNQ_PS_CLK_FREQ	50000000UL
+/* #define CONFIG_ZYNQ_PS_CLK_FREQ	50000000UL */
 
 #include <configs/zynq-common.h>
 
