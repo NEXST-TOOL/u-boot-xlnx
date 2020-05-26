@@ -490,10 +490,6 @@ static int zynq_gem_init(struct udevice *dev)
 	if (priv->interface == PHY_INTERFACE_MODE_SGMII) {
 		nwconfig |= ZYNQ_GEM_NWCFG_SGMII_ENBL |
 			    ZYNQ_GEM_NWCFG_PCS_SEL;
-#ifdef CONFIG_ARM64
-		writel(readl(&regs->pcscntrl) & ~ZYNQ_GEM_PCS_CTL_ANEG_ENBL,
-		       &regs->pcscntrl);
-#endif
 	}
 
 	switch (priv->phydev->speed) {
@@ -511,6 +507,11 @@ static int zynq_gem_init(struct udevice *dev)
 		clk_rate = ZYNQ_GEM_FREQUENCY_10;
 		break;
 	}
+
+#ifdef CONFIG_ARM64
+		writel(readl(&regs->pcscntrl) & ~ZYNQ_GEM_PCS_CTL_ANEG_ENBL,
+		       &regs->pcscntrl);
+#endif
 
 #if !defined(CONFIG_ARCH_VERSAL)
 	ret = clk_set_rate(&priv->clk, clk_rate);
