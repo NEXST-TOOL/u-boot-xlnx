@@ -955,6 +955,7 @@ config ARCH_ZYNQMP
 	select SPL_CLK if SPL
 	select SPL_SEPARATE_BSS if SPL
 	select SUPPORT_SPL
+  select CMD_CACHE
 	imply BOARD_LATE_INIT
 	imply CMD_DM
 	imply FAT_WRITE
