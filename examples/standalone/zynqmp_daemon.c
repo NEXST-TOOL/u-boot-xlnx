@@ -42,7 +42,7 @@ int zynqmp_daemon ()
     arg1 = ipc_arg[1];
     arg2 = ipc_arg[2];
     arg3 = ipc_arg[3];
-    invoke_smc(api, arg0, arg1, arg2, arg3, ipc_ret);
+    xilinx_pm_request(api, arg0, arg1, arg2, arg3, ipc_ret);
 
     *ipc_req = 0;
   }

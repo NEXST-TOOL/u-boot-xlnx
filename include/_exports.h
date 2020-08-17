@@ -85,5 +85,5 @@
 		    const char *devname)
 #endif
 #ifdef CONFIG_ARCH_ZYNQMP
-  EXPORT_FUNC(invoke_smc, int, invoke_smc, u32, u32, u32, u32, u32, u32*)
+  EXPORT_FUNC(xilinx_pm_request, int, xilinx_pm_request, u32, u32, u32, u32, u32, u32*)
 #endif
