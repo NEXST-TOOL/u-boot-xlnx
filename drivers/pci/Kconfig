@@ -127,6 +127,13 @@ config PCI_XILINX
 	  Enable support for the Xilinx AXI bridge for PCI express, an IP block
 	  which can be used on some generations of Xilinx FPGAs.
 
+config PCI_XDMA_PL
+	bool "Xilinx XDMA PL PCIe host bridge support"
+	depends on DM_PCI
+	help
+	  Enable support for the Xilinx XDMA PL PCIe host bridge, an IP block
+	  which can be used on some generations of Xilinx FPGAs.
+
 config PCIE_LAYERSCAPE
 	bool "Layerscape PCIe support"
 	depends on DM_PCI
