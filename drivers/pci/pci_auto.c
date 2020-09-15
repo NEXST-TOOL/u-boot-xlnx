@@ -178,6 +178,9 @@ void dm_pciauto_prescan_setup_bridge(struct udevice *dev, int sub_bus)
 	struct udevice *ctlr = pci_get_controller(dev);
 	struct pci_controller *ctlr_hose = dev_get_uclass_priv(ctlr);
 
+  u32 bus;
+  u8 primary_bus, secondary_bus;
+
 	pci_mem = ctlr_hose->pci_mem;
 	pci_prefetch = ctlr_hose->pci_prefetch;
 	pci_io = ctlr_hose->pci_io;
@@ -186,11 +189,14 @@ void dm_pciauto_prescan_setup_bridge(struct udevice *dev, int sub_bus)
 	dm_pci_read_config16(dev, PCI_PREF_MEMORY_BASE, &prefechable_64);
 	prefechable_64 &= PCI_PREF_RANGE_TYPE_MASK;
 
-	/* Configure bus number registers */
-	dm_pci_write_config8(dev, PCI_PRIMARY_BUS,
-			     PCI_BUS(dm_pci_get_bdf(dev)) - ctlr->seq);
-	dm_pci_write_config8(dev, PCI_SECONDARY_BUS, sub_bus - ctlr->seq);
-	dm_pci_write_config8(dev, PCI_SUBORDINATE_BUS, 0xff);
+	/* Configure bus number registers 
+   * we must blast all three bus values within a single PCI write */
+  primary_bus = PCI_BUS(dm_pci_get_bdf(dev)) - ctlr->seq;
+  secondary_bus = sub_bus - ctlr->seq;
+
+  bus = (primary_bus << 0) | (secondary_bus << 8) | (0x00ff << 16);
+
+	dm_pci_write_config32(dev, PCI_PRIMARY_BUS, bus);
 
 	if (pci_mem) {
 		/* Round memory allocator to 1MB boundary */
