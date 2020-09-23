@@ -180,7 +180,7 @@
 
 #ifdef CONFIG_NVME
 #define BOOTENV_RUN_NVME_INIT "run nvme_init; "
-#define BOOTENV_SET_NVME_NEED_INIT "setenv nvme_need_init; "
+#define BOOTENV_SET_NVME_NEED_INIT "setenv nvme_need_init true; "
 #define BOOTENV_SHARED_NVME \
 	"nvme_init=" \
 		"if ${nvme_need_init}; then " \

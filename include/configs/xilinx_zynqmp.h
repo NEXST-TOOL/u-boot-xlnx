@@ -124,6 +124,12 @@
 # define BOOT_TARGET_DEVICES_MMC(func)
 #endif
 
+#if defined(CONFIG_NVME)
+# define BOOT_TARGET_DEVICES_NVME(func)	func(NVME, nvme, 0)
+#else
+# define BOOT_TARGET_DEVICES_NVME(func)
+#endif
+
 #if defined(CONFIG_SATA_CEVA)
 # define BOOT_TARGET_DEVICES_SCSI(func)	func(SCSI, scsi, 0)
 #else
@@ -187,6 +193,7 @@
 #define BOOT_TARGET_DEVICES(func) \
 	BOOT_TARGET_DEVICES_JTAG(func) \
 	BOOT_TARGET_DEVICES_MMC(func) \
+	BOOT_TARGET_DEVICES_NVME(func) \
 	BOOT_TARGET_DEVICES_QSPI(func) \
 	BOOT_TARGET_DEVICES_NAND(func) \
 	BOOT_TARGET_DEVICES_USB(func) \
