@@ -7,7 +7,7 @@
 #include <common.h>
 #include <exports.h>
 
-#define RV_ARM_IPC_BASE   0x0ff00000
+#define RV_ARM_IPC_BASE   0x80000000
 #define RV_ARM_IPC_REQ    (RV_ARM_IPC_BASE + 0x0)
 #define RV_ARM_IPC_API    (RV_ARM_IPC_BASE + 0x4)
 #define RV_ARM_IPC_ARG    (RV_ARM_IPC_BASE + 0x10)
