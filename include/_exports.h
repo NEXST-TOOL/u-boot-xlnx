@@ -87,4 +87,5 @@
 #endif
 #ifdef CONFIG_ARCH_ZYNQMP
   EXPORT_FUNC(invoke_smc, int, invoke_smc, u32, u32, u32, u32, u32, u32*)
+  EXPORT_FUNC(memcpy, void *, memcpy, void *, const void*, size_t)
 #endif

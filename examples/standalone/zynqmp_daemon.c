@@ -50,8 +50,11 @@ int zynqmp_daemon ()
     arg3 = ipc_arg[3];
 
     if( (api & SHA3_ARM_ASSIST) == SHA3_ARM_ASSIST ) {
+      sha3_ctx_t sha3_local;
       sha3_ctx_t *sha3_shared = (sha3_ctx_t *)ipc_ret;
       api &= 0xFF;
+
+      memcpy(&sha3_local, sha3_shared, sizeof(*sha3_shared));
 
       if (api == SHA3_UPDATE) {
         u64 len = (u64)arg2;
@@ -59,14 +62,16 @@ int zynqmp_daemon ()
         u64 addr = (u64)arg1 << 32;
         addr |= arg0;
 
-        sha3_update(sha3_shared, (void *)addr, len);
+        sha3_update(&sha3_local, (void *)addr, len);
       }
 
       else if (api == SHA3_FINALIZE)
-        sha3_final(sha3_shared);
+        sha3_final(&sha3_local);
 
       else
         printf ("Invalid SHA3 IPC function\n");
+
+      memcpy(sha3_shared, &sha3_local, sizeof(*sha3_shared));
     }
     else
       invoke_smc(api, arg0, arg1, arg2, arg3, ipc_ret);
