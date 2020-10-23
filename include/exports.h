@@ -47,6 +47,7 @@ int miiphy_set_current_dev(const char *devname);
 #ifdef CONFIG_ARCH_ZYNQMP
 int invoke_smc(u32, u32, u32, u32, u32, u32*);
 void* memcpy(void*, const void*, size_t);
+void flush_dcache_all(void);
 #endif
 
 void app_startup(char * const *);

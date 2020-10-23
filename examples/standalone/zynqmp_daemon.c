@@ -39,7 +39,7 @@ int zynqmp_daemon ()
   *rv_reset_reg = 0;
 
   for (;;) {
-    u32 api, arg0, arg1, arg2, arg3;
+    u32 api, arg0, arg1, arg2, arg3, arg4;
 
     while (!*ipc_req);
 
@@ -48,30 +48,31 @@ int zynqmp_daemon ()
     arg1 = ipc_arg[1];
     arg2 = ipc_arg[2];
     arg3 = ipc_arg[3];
+    arg4 = ipc_arg[4];
 
     if( (api & SHA3_ARM_ASSIST) == SHA3_ARM_ASSIST ) {
-      sha3_ctx_t sha3_local;
-      sha3_ctx_t *sha3_shared = (sha3_ctx_t *)ipc_ret;
+      u64 sha3_ctx_addr = (u64)arg1 << 32;
+      sha3_ctx_addr |= arg0;
+
       api &= 0xFF;
 
-      memcpy(&sha3_local, sha3_shared, sizeof(*sha3_shared));
-
       if (api == SHA3_UPDATE) {
-        u64 len = (u64)arg2;
+        u64 len = (u64)arg4;
 
-        u64 addr = (u64)arg1 << 32;
-        addr |= arg0;
+        u64 addr = (u64)arg3 << 32;
+        addr |= arg2;
 
-        sha3_update(&sha3_local, (void *)addr, len);
+        sha3_update((sha3_ctx_t *)sha3_ctx_addr, (void *)addr, len);
       }
 
       else if (api == SHA3_FINALIZE)
-        sha3_final(&sha3_local);
+        sha3_final((sha3_ctx_t *)sha3_ctx_addr);
 
       else
         printf ("Invalid SHA3 IPC function\n");
 
-      memcpy(sha3_shared, &sha3_local, sizeof(*sha3_shared));
+      //force contents of sha3_ctx_t available in RISC-V's cache or DRAM
+      flush_dcache_all();
     }
     else
       invoke_smc(api, arg0, arg1, arg2, arg3, ipc_ret);
