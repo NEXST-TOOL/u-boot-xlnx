@@ -1,10 +1,15 @@
 #ifndef __EXPORTS_H__
 #define __EXPORTS_H__
 
+#include <irq_func.h>
+
 #ifndef __ASSEMBLY__
 #ifdef CONFIG_PHY_AQUANTIA
+#include <env.h>
 #include <phy_interface.h>
 #endif
+
+#include <irq_func.h>
 
 struct spi_slave;
 
@@ -32,8 +37,7 @@ long simple_strtol(const char *cp, char **endp, unsigned int base);
 int strcmp(const char *cs, const char *ct);
 unsigned long ustrtoul(const char *cp, char **endp, unsigned int base);
 unsigned long long ustrtoull(const char *cp, char **endp, unsigned int base);
-#if defined(CONFIG_CMD_I2C) && \
-		(!defined(CONFIG_DM_I2C) || defined(CONFIG_DM_I2C_COMPAT))
+#if defined(CONFIG_CMD_I2C) && !defined(CONFIG_DM_I2C)
 int i2c_write (uchar, uint, int , uchar* , int);
 int i2c_read (uchar, uint, int , uchar* , int);
 #endif
@@ -45,7 +49,7 @@ struct phy_device *mdio_phydev_for_ethname(const char *ethname);
 int miiphy_set_current_dev(const char *devname);
 #endif
 #ifdef CONFIG_ARCH_ZYNQMP
-int invoke_smc(u32, u32, u32, u32, u32, u32*);
+int xilinx_pm_request(u32, u32, u32, u32, u32, u32*);
 void* memcpy(void*, const void*, size_t);
 void flush_dcache_all(void);
 #endif

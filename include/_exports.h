@@ -40,8 +40,7 @@
 	EXPORT_FUNC(simple_strtol, long, simple_strtol,
 		    const char *, char **, unsigned int)
 	EXPORT_FUNC(strcmp, int, strcmp, const char *cs, const char *ct)
-#if defined(CONFIG_CMD_I2C) && \
-		(!defined(CONFIG_DM_I2C) || defined(CONFIG_DM_I2C_COMPAT))
+#if defined(CONFIG_CMD_I2C) && !defined(CONFIG_DM_I2C)
 	EXPORT_FUNC(i2c_write, int, i2c_write, uchar, uint, int , uchar * , int)
 	EXPORT_FUNC(i2c_read, int, i2c_read, uchar, uint, int , uchar * , int)
 #else
@@ -86,7 +85,7 @@
 		    const char *devname)
 #endif
 #ifdef CONFIG_ARCH_ZYNQMP
-  EXPORT_FUNC(invoke_smc, int, invoke_smc, u32, u32, u32, u32, u32, u32*)
+  EXPORT_FUNC(xilinx_pm_request, int, xilinx_pm_request, u32, u32, u32, u32, u32, u32*)
   EXPORT_FUNC(memcpy, void *, memcpy, void *, const void*, size_t)
   EXPORT_FUNC(flush_dcache_all, void, flush_dcache_all, void)
 #endif

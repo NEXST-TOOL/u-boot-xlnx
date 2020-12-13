@@ -75,7 +75,7 @@ int zynqmp_daemon ()
       flush_dcache_all();
     }
     else
-      invoke_smc(api, arg0, arg1, arg2, arg3, ipc_ret);
+      xilinx_pm_request(api, arg0, arg1, arg2, arg3, ipc_ret);
 
     *ipc_req = 0;
   }

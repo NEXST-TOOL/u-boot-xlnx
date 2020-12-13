@@ -28,7 +28,6 @@ LIBOBJS-$(CONFIG_PPC) += ppc_longjmp.o ppc_setjmp.o
 LIBOBJS-y += stubs.o
 LIBOBJS-$(CONFIG_ARCH_ZYNQMP) += sha3.o
 
-.SECONDARY: $(call objectify,$(COBJS))
 targets += $(patsubst $(obj)/%,%,$(LIB)) $(COBJS) $(LIBOBJS-y)
 
 LIBOBJS	:= $(addprefix $(obj)/,$(LIBOBJS-y))
