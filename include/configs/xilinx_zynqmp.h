@@ -102,7 +102,7 @@
 /* Ethernet driver */
 #if defined(CONFIG_ZYNQ_GEM)
 # define CONFIG_SYS_FAULT_ECHO_LINK_DOWN
-# define PHY_ANEG_TIMEOUT       20000
+# define PHY_ANEG_TIMEOUT       800
 #endif
 
 #define CONFIG_SYS_BOOTM_LEN	(60 * 1024 * 1024)
