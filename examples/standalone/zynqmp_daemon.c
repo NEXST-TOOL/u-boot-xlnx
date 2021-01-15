@@ -26,6 +26,12 @@ static volatile u32 *rv_reset_reg = (void*)0x83c00000;
 #define SHA3_UPDATE  0
 #define SHA3_FINALIZE  1
 
+#define PM_SIP_SVC 0xC2000000
+#define PM_SIP_SVC_MASK 0xFFFF0000
+#define PM_FPGA_LOAD 22
+
+#define BITSTREAM_BUFFER  0x00080000
+
 int zynqmp_daemon ()
 {
   /* Print the ABI version */
@@ -74,8 +80,34 @@ int zynqmp_daemon ()
       //force contents of sha3_ctx_t available in RISC-V's cache or DRAM
       flush_dcache_all();
     }
-    else
+    else if ((api & PM_SIP_SVC_MASK) == PM_SIP_SVC) {
+      void *src, *dst;
+      u32 size;
+      u64 addr;
+
+      switch (api & ~PM_SIP_SVC_MASK) {
+        case PM_FPGA_LOAD:
+          // copy bitstream to a buffer in DRAM accessible by CSU DMA
+          addr = (arg0 | ((u64)arg1 << 32));
+          src = (void *)addr;
+          dst = (void *)BITSTREAM_BUFFER;
+          size = arg2 << 2; // arg2 is the bitstream size in 32-bit words
+
+          invalidate_dcache_range(addr, addr+size);
+          memcpy(dst, src, size);
+          flush_dcache_range(BITSTREAM_BUFFER, BITSTREAM_BUFFER+size);
+
+          arg0 = BITSTREAM_BUFFER;
+          arg1 = 0;
+
+          break;
+      }
+
       xilinx_pm_request(api, arg0, arg1, arg2, arg3, ipc_ret);
+    }
+    else {
+      printf("Unknown API 0x%08x\n", api);
+    }
 
     *ipc_req = 0;
   }
