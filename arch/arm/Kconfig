@@ -1070,6 +1070,7 @@ config ARCH_ZYNQMP
 	select ZYNQMP_IPI
 	imply BOARD_LATE_INIT
 	imply CMD_DM
+	imply CMD_CACHE
 	imply FAT_WRITE
 	imply MP
 	imply DM_USB_GADGET
