@@ -30,6 +30,8 @@ static volatile u32 *rv_reset_reg = (void*)0x83c00000;
 #define PM_SIP_SVC_MASK 0xFFFF0000
 #define PM_FPGA_LOAD 22
 
+#define ARM_ASSIST_FPGA_LOAD 0xC2100016
+
 #define BITSTREAM_BUFFER  0x00080000
 
 int zynqmp_daemon ()
@@ -81,29 +83,24 @@ int zynqmp_daemon ()
       flush_dcache_all();
     }
     else if ((api & PM_SIP_SVC_MASK) == PM_SIP_SVC) {
+      xilinx_pm_request(api, arg0, arg1, arg2, arg3, ipc_ret);
+    }
+    else if (api == ARM_ASSIST_FPGA_LOAD) {
       void *src, *dst;
       u32 size;
       u64 addr;
 
-      switch (api & ~PM_SIP_SVC_MASK) {
-        case PM_FPGA_LOAD:
-          // copy bitstream to a buffer in DRAM accessible by CSU DMA
-          addr = (arg0 | ((u64)arg1 << 32));
-          src = (void *)addr;
-          dst = (void *)BITSTREAM_BUFFER;
-          size = arg2 << 2; // arg2 is the bitstream size in 32-bit words
+      // copy bitstream to a buffer in DRAM accessible by CSU DMA
+      addr = (arg0 | ((u64)arg1 << 32));
+      src = (void *)addr;
+      dst = (void *)BITSTREAM_BUFFER;
+      size = arg2 << 2; // arg2 is the bitstream size in 32-bit words
 
-          invalidate_dcache_range(addr, addr+size);
-          memcpy(dst, src, size);
-          flush_dcache_range(BITSTREAM_BUFFER, BITSTREAM_BUFFER+size);
+      invalidate_dcache_range(addr, addr+size);
+      memcpy(dst, src, size);
+      flush_dcache_range(BITSTREAM_BUFFER, BITSTREAM_BUFFER+size);
 
-          arg0 = BITSTREAM_BUFFER;
-          arg1 = 0;
-
-          break;
-      }
-
-      xilinx_pm_request(api, arg0, arg1, arg2, arg3, ipc_ret);
+      xilinx_pm_request(PM_SIP_SVC | PM_FPGA_LOAD, BITSTREAM_BUFFER, 0, arg2, arg3, ipc_ret);
     }
     else {
       printf("Unknown API 0x%08x\n", api);
