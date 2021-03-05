@@ -52,6 +52,8 @@ int miiphy_set_current_dev(const char *devname);
 int xilinx_pm_request(u32, u32, u32, u32, u32, u32*);
 void* memcpy(void*, const void*, size_t);
 void flush_dcache_all(void);
+void invalidate_dcache_range(unsigned long start, unsigned long stop);
+void flush_dcache_range(unsigned long start, unsigned long stop);
 #endif
 
 void app_startup(char * const *);
