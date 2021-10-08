@@ -1,0 +1,49 @@
+if TARGET_ICT_SERVE
+
+config SYS_BOARD
+	default "serve"
+
+config SYS_VENDOR
+	default "ict"
+
+config SYS_CPU
+	default "generic"
+
+config SYS_CONFIG_NAME
+	default "ict-serve"
+
+config SYS_TEXT_BASE
+	default 0x50000000 if (!RISCV_SMODE && SERVE_PLAT_R)
+	default 0x80000000 if (!RISCV_SMODE && SERVE_PLAT_H)
+	default 0xB0000000 if (!RISCV_SMODE && (!SERVE_PLAT_R) && (!SERVE_PLAT_H))
+	default 0x50200000 if (RISCV_SMODE && SERVE_PLAT_R)
+	default 0x80200000 if (RISCV_SMODE && SERVE_PLAT_H)
+	default 0xB0200000 if (RISCV_SMODE && (!SERVE_PLAT_R) && (!SERVE_PLAT_H))
+
+config ZYNQ_SDHCI_MAX_FREQ
+	default 52000000
+
+config BOARD_SPECIFIC_OPTIONS # dummy
+	def_bool y
+	select GENERIC_RISCV
+	select CMD_DHCP
+	select CMD_EXT2
+	select CMD_EXT4
+	select CMD_FAT
+	select CMD_FS_GENERIC
+	select CMD_NET
+	select CMD_PING
+	select DOS_PARTITION
+	select EFI_PARTITION
+	select IP_DYN
+	select ISO_PARTITION
+	select XILINX_UARTLITE
+	select XILINX_AXIEMAC 
+	select MII
+	select NET_RANDOM_ETHADDR
+	select PHYLIB
+	select PHY_FIXED
+	select PHY_TI
+	select SMP
+
+endif

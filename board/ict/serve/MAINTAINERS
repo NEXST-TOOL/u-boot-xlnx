@@ -1,0 +1,10 @@
+ICT SERVE platform
+M:	Yisong Chang <changyisong@ict.ac.cn>
+S:	Maintained
+F:	board/ict/serve/
+F:	configs/ict_serve_r_defconfig
+F:	configs/ict_serve_i_defconfig
+F:	configs/ict_serve_s_defconfig
+F:	configs/ict_serve_d_defconfig
+F:	configs/ict_serve_h_defconfig
+F:	include/configs/ict-serve.h
