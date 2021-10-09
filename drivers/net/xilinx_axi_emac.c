@@ -728,8 +728,17 @@ static int axi_emac_ofdata_to_platdata(struct udevice *dev)
 		printf("%s: axistream is not found\n", __func__);
 		return -EINVAL;
 	}
-	priv->dmatx = (struct axidma_reg *)fdtdec_get_addr(gd->fdt_blob,
-							  offset, "reg");
+
+	/* FIXME:
+	 * Assume that the address cell and size cell 
+	 * are both fixed as 1 in DMA reg node.
+	 * Explicitly fetch the DMA MMIO reg base address with the cell sizes, 
+	 * ignoring different sizeof(fdt_size_t) among various ISAs
+	 */
+	priv->dmatx = (struct axidma_reg *)fdtdec_get_addr_size_fixed
+						(gd->fdt_blob, offset, "reg", 0, 
+						 1, 1, NULL, false);
+
 	if (!priv->dmatx) {
 		printf("%s: axi_dma register space not found\n", __func__);
 		return -EINVAL;
