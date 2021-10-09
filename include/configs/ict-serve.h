@@ -45,6 +45,9 @@
         "scriptaddr=0xB0400000\0"
 #endif
 
+#define SERVE_FDT_HIGH \
+        "fdt_high=0xFFFFFFFFFFFFFFFF\0"
+
 #if defined(CONFIG_CMD_DHCP)
 # define BOOT_TARGET_DEVICES_DHCP(func)	func(DHCP, dhcp, na)
 #else
@@ -58,7 +61,8 @@
 
 #ifndef CONFIG_EXTRA_ENV_SETTINGS
 #define CONFIG_EXTRA_ENV_SETTINGS \
-  SERVE_IMAGE_ADDR
+  SERVE_IMAGE_ADDR \
+  SERVE_FDT_HIGH
 #endif
 
 #endif /* __CONFIG_H */
