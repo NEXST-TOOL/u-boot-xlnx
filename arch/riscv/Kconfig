@@ -23,16 +23,6 @@ config TARGET_SIFIVE_FU540
 config TARGET_ICT_SERVE
 	bool "Support ICT SERVE Platform"
 
-config SERVE_PLAT_R
-	bool "Using SERVE.r Platform (PYNQ z2)"
-	depends on TARGET_ICT_SERVE
-	default n
-
-config SERVE_PLAT_H
-	bool "Using SERVE.h Platform (Xilinx VCU128)"
-	depends on TARGET_ICT_SERVE
-	default n
-
 endchoice
 
 config SYS_ICACHE_OFF
