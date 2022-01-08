@@ -106,6 +106,15 @@
 #endif
 #endif
 
+//ISA-specified directory of boot script image
+#if defined(CONFIG_ARM64)
+#define BOOTSCR_DIR "aarch64"
+#elif defined(CONFIG_ARM)
+#define BOOTSCR_DIR "arm"
+#elif defined(CONFIG_ARCH_RV64I)
+#define BOOTSCR_DIR "riscv"
+#endif
+
 #ifdef BOOTEFI_NAME
 #if defined(CONFIG_ARM) && !defined(CONFIG_ARM64)
 /*
@@ -417,7 +426,7 @@
 	BOOTENV_SHARED_UBIFS \
 	BOOTENV_SHARED_EFI \
 	BOOTENV_SHARED_VIRTIO \
-	"boot_prefixes=/ /boot/\0" \
+	"boot_prefixes=/ /boot/ /"BOOTSCR_DIR"/\0" \
 	"boot_scripts=boot.scr.uimg boot.scr\0" \
 	"boot_script_dhcp=boot.scr.uimg\0" \
 	BOOTENV_BOOT_TARGETS \
