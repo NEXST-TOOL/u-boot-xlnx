@@ -63,6 +63,7 @@ source "arch/riscv/cpu/ax25/Kconfig"
 source "arch/riscv/cpu/generic/Kconfig"
 
 # architecture-specific options below
+source "arch/riscv/mach-serve/Kconfig"
 
 choice
 	prompt "Base ISA"

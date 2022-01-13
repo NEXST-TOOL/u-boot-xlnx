@@ -9,12 +9,12 @@ config SYS_VENDOR
 config SYS_CPU
 	default "generic"
 
+config SYS_SOC
+	default "serve"
+
 config SYS_CONFIG_NAME
 	string "Board configuration name"
 	default "ict-serve-r"
-
-config ZYNQ_SDHCI_MAX_FREQ
-	default 52000000
 
 config BOARD_SPECIFIC_OPTIONS # dummy
 	def_bool y

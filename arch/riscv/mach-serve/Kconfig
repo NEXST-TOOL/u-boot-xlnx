@@ -1,0 +1,10 @@
+if TARGET_ICT_SERVE
+
+config SERVE_CLK_SLCR
+	bool "clock framework based on slcr on SERVE.r"
+	default n
+
+config ZYNQ_SDHCI_MAX_FREQ
+	default 52000000
+
+endif

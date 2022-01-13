@@ -112,7 +112,7 @@ config CLK_VEXPRESS_OSC
 
 config CLK_ZYNQ
 	bool "Enable clock driver support for Zynq"
-	depends on CLK && ARCH_ZYNQ
+	depends on CLK && (ARCH_ZYNQ || TARGET_ICT_SERVE)
 	default y
 	help
 	  This clock driver adds support for clock realted settings for

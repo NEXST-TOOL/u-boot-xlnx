@@ -30,8 +30,16 @@
 # define BOOT_TARGET_DEVICES_DHCP(func)
 #endif
 
+#if defined(CONFIG_MMC_SDHCI_ZYNQ)
+# define BOOT_TARGET_DEVICES_MMC(func) func(MMC, mmc, 0)
+#else
+# define BOOT_TARGET_DEVICES_MMC(func)
+#endif
+
+
 #define BOOT_TARGET_DEVICES(func) \
-	BOOT_TARGET_DEVICES_DHCP(func)
+	BOOT_TARGET_DEVICES_DHCP(func) \
+	BOOT_TARGET_DEVICES_MMC(func)
 
 #include <config_distro_bootcmd.h>
 

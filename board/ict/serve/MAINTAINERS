@@ -9,3 +9,4 @@ F:	configs/ict_serve_d_defconfig
 F:	configs/ict_serve_h_defconfig
 F:	include/configs/ict-serve.h
 F:	include/configs/ict-serve-h.h
+F:	include/configs/ict-serve-r.h

@@ -672,7 +672,7 @@ config UNIPHIER_SERIAL
 
 config XILINX_UARTLITE
 	bool "Xilinx Uarlite support"
-	depends on DM_SERIAL && (MICROBLAZE || ARCH_ZYNQ || ARCH_ZYNQMP || RISCV || 4xx)
+	depends on DM_SERIAL && (MICROBLAZE || ARCH_ZYNQ || ARCH_ZYNQMP || TARGET_ICT_SERVE || 4xx)
 	help
 	  If you have a Xilinx based board and want to use the uartlite
 	  serial ports, say Y to this option. If unsure, say N.
@@ -740,7 +740,7 @@ config STM32_SERIAL
 
 config ZYNQ_SERIAL
 	bool "Cadence (Xilinx Zynq) UART support"
-	depends on DM_SERIAL && (MICROBLAZE || ARCH_ZYNQ || ARCH_ZYNQMP || ARCH_ZYNQMP_R5)
+	depends on DM_SERIAL && (MICROBLAZE || ARCH_ZYNQ || ARCH_ZYNQMP || ARCH_ZYNQMP_R5 || TARGET_ICT_SERVE)
 	help
 	  This driver supports the Cadence UART. It is found e.g. in Xilinx
 	  Zynq/ZynqMP.
