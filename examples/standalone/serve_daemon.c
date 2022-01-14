@@ -8,6 +8,7 @@
 #include <exports.h>
 #include <sha3.h>
 
+#if defined(CONFIG_ARCH_ZYNQMP)
 #define RV_ARM_IPC_BASE   0x80000000
 #define RV_ARM_IPC_REQ    (RV_ARM_IPC_BASE + 0x0)
 #define RV_ARM_IPC_API    (RV_ARM_IPC_BASE + 0x4)
@@ -34,19 +35,24 @@ static volatile u32 *rv_reset_reg = (void*)0x83c00000;
 
 #define BITSTREAM_BUFFER  0x00080000
 
-int zynqmp_daemon ()
+#else
+static volatile u32 *rv_reset_reg = (void*)0x43c00000;
+#endif
+
+int serve_daemon ()
 {
   /* Print the ABI version */
   printf ("Example expects ABI version %d\n", XF_VERSION);
   printf ("Actual U-Boot ABI version %d\n", (int)get_version());
 
-  printf ("RV-ARM IPC Service\n");
-
+#if defined(CONFIG_ARCH_ZYNQMP)  
   *ipc_req = 0;
+#endif
 
   *rv_reset_reg = 0;
 
   for (;;) {
+#if defined(CONFIG_ARCH_ZYNQMP)
     u32 api, arg0, arg1, arg2, arg3, arg4;
 
     while (!*ipc_req);
@@ -107,6 +113,7 @@ int zynqmp_daemon ()
     }
 
     *ipc_req = 0;
+#endif
   }
 
   return 0;
