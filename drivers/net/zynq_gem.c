@@ -58,13 +58,13 @@
 #define ZYNQ_GEM_NWCFG_FSREM		0x00020000 /* FCS removal */
 #define ZYNQ_GEM_NWCFG_SGMII_ENBL	0x08000000 /* SGMII Enable */
 #define ZYNQ_GEM_NWCFG_PCS_SEL		0x00000800 /* PCS select */
-#ifdef CONFIG_ARM64
+#if defined(CONFIG_ARM64) || defined(CONFIG_SERVE_ZYNQMP)
 #define ZYNQ_GEM_NWCFG_MDCCLKDIV	0x00100000 /* Div pclk by 64, max 160MHz */
 #else
 #define ZYNQ_GEM_NWCFG_MDCCLKDIV	0x000c0000 /* Div pclk by 48, max 120MHz */
 #endif
 
-#ifdef CONFIG_ARM64
+#if defined(CONFIG_ARM64) || defined(CONFIG_SERVE_ZYNQMP)
 # define ZYNQ_GEM_DBUS_WIDTH	(1 << 21) /* 64 bit bus */
 #else
 # define ZYNQ_GEM_DBUS_WIDTH	(0 << 21) /* 32 bit bus */
@@ -185,6 +185,9 @@ struct emac_bd {
 /* Setup the first free TX descriptor */
 #define TX_FREE_DESC	2
 
+#if defined(CONFIG_SERVE_ZYNQMP)
+#define MMU_SECTION_SHIFT  20
+#endif
 /* Initialized, rxbd_current, rx_first_buf must be 0 after init */
 struct zynq_gem_priv {
 	struct emac_bd *tx_bd;
@@ -204,8 +207,8 @@ struct zynq_gem_priv {
 	u32 max_speed;
 	bool int_pcs;
 	bool dma_64bit;
-  unsigned char *mac_addr;
-  int mac_addr_len;
+	unsigned char *mac_addr;
+	int mac_addr_len;
 };
 
 static int phy_setup_op(struct zynq_gem_priv *priv, u32 phy_addr, u32 regnum,
@@ -270,11 +273,11 @@ static int zynq_gem_setup_mac(struct udevice *dev)
 	struct eth_pdata *pdata = dev_get_platdata(dev);
 	struct zynq_gem_priv *priv = dev_get_priv(dev);
 	struct zynq_gem_regs *regs = priv->iobase;
-
-  printf("local mac address: %02x %02x %02x %02x %02x %02x\n", 
-      pdata->enetaddr[0], pdata->enetaddr[1], 
-      pdata->enetaddr[2], pdata->enetaddr[3], 
-      pdata->enetaddr[4], pdata->enetaddr[5]);
+	
+	printf("local mac address: %02x %02x %02x %02x %02x %02x\n", 
+			pdata->enetaddr[0], pdata->enetaddr[1], 
+			pdata->enetaddr[2], pdata->enetaddr[3], 
+			pdata->enetaddr[4], pdata->enetaddr[5]);
 
 	/* Set the MAC bits [31:0] in BOT */
 	macaddrlow = pdata->enetaddr[0];
@@ -469,9 +472,9 @@ static int zynq_gem_init(struct udevice *dev)
 		break;
 	}
 
-#ifdef CONFIG_ARM64
-		writel(readl(&regs->pcscntrl) & ~ZYNQ_GEM_PCS_CTL_ANEG_ENBL,
-		       &regs->pcscntrl);
+#if defined(CONFIG_ARM64) || defined(CONFIG_SERVE_ZYNQMP)
+	writel(readl(&regs->pcscntrl) & ~ZYNQ_GEM_PCS_CTL_ANEG_ENBL,
+		&regs->pcscntrl);
 #endif
 
 	ret = clk_set_rate(&priv->clk, clk_rate);
@@ -573,10 +576,10 @@ static int zynq_gem_recv(struct udevice *dev, int flags, uchar **packetp)
 	addr &= ~(ARCH_DMA_MINALIGN - 1);
 
 	*packetp = (uchar *)(uintptr_t)addr;
-
+#if defined(CONFIG_ARM64)
 	invalidate_dcache_range(addr, addr + roundup(PKTSIZE_ALIGN, ARCH_DMA_MINALIGN));
 	barrier();
-
+#endif
 	return frame_len;
 }
 
@@ -635,18 +638,18 @@ static int zynq_gem_read_rom_mac(struct udevice *dev)
 {
 	struct eth_pdata *pdata = dev_get_platdata(dev);
 	struct zynq_gem_priv *priv = dev_get_priv(dev);
-  int i;
+	int i;
 
 	if (!pdata)
 		return -ENOSYS;
+	
+	if (priv->mac_addr == NULL)
+		return zynq_board_read_rom_ethaddr(pdata->enetaddr);
 
-  if (priv->mac_addr == NULL)
-    return zynq_board_read_rom_ethaddr(pdata->enetaddr);
-
-  for(i = 0; i < ARP_HLEN; i++)
-    pdata->enetaddr[i] = priv->mac_addr[i];
-
-  return 0;
+	for(i = 0; i < ARP_HLEN; i++)
+		pdata->enetaddr[i] = priv->mac_addr[i];
+	
+	return 0;
 }
 
 static int zynq_gem_miiphy_read(struct mii_dev *bus, int addr,
@@ -692,10 +695,10 @@ static int zynq_gem_probe(struct udevice *dev)
 		ret = -ENOMEM;
 		goto err1;
 	}
-
+#if defined(CONFIG_ARM64)
 	mmu_set_region_dcache_behaviour((phys_addr_t)bd_space,
 					BD_SPACE, DCACHE_OFF);
-
+#endif
 	/* Initialize the bd spaces for tx and rx bd's */
 	priv->tx_bd = (struct emac_bd *)bd_space;
 	priv->rx_bd = (struct emac_bd *)((ulong)bd_space + BD_SEPRN_SPACE);
@@ -758,17 +761,17 @@ static int zynq_gem_ofdata_to_platdata(struct udevice *dev)
 
 	pdata->iobase = (phys_addr_t)dev_read_addr(dev);
 	priv->iobase = (struct zynq_gem_regs *)pdata->iobase;
-
-  /* obtain MAC address from DT */
-  priv->mac_addr = NULL;
-  priv->mac_addr_len = 0;
-
-  priv->mac_addr = (unsigned char *)dev_read_prop(dev, 
-      "local-mac-address", &priv->mac_addr_len);
-
-  if ((priv->mac_addr == NULL) || 
-      (priv->mac_addr_len != ARP_HLEN))
-    debug("load MAC address from DT failed");
+	
+	/* obtain MAC address from DT */
+	priv->mac_addr = NULL;
+	priv->mac_addr_len = 0;
+	
+	priv->mac_addr = (unsigned char *)dev_read_prop(dev, 
+			"local-mac-address", &priv->mac_addr_len);
+	
+	if ((priv->mac_addr == NULL) || 
+		(priv->mac_addr_len != ARP_HLEN))
+		debug("load MAC address from DT failed");
 
 	/* Hardcode for now */
 	priv->phyaddr = -1;

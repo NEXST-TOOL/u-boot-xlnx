@@ -7,4 +7,8 @@ config SERVE_CLK_SLCR
 config ZYNQ_SDHCI_MAX_FREQ
 	default 52000000
 
+config SERVE_ZYNQMP
+        bool "SERVE prototyping w/ Zynq MPSoC"
+	default n
+
 endif

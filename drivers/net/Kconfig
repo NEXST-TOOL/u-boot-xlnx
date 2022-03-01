@@ -443,7 +443,7 @@ config XILINX_EMACLITE
 	  This MAC is present in Xilinx Microblaze, Zynq and ZynqMP SoCs.
 
 config ZYNQ_GEM
-	depends on DM_ETH && (ARCH_ZYNQ || ARCH_ZYNQMP || ARCH_VERSAL)
+	depends on DM_ETH && (ARCH_ZYNQ || ARCH_ZYNQMP || ARCH_VERSAL || TARGET_ICT_SERVE)
 	select PHYLIB
 	bool "Xilinx Ethernet GEM"
 	help

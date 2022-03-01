@@ -120,8 +120,8 @@ config CLK_ZYNQ
 
 config CLK_ZYNQMP
 	bool "Enable clock driver support for ZynqMP"
-	depends on ARCH_ZYNQMP
-	select ZYNQMP_FIRMWARE
+	depends on ARCH_ZYNQMP || TARGET_ICT_SERVE
+	select ZYNQMP_FIRMWARE if ARCH_ZYNQMP
 	help
 	  This clock driver adds support for clock realted settings for
 	  ZynqMP platform.
