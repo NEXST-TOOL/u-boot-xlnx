@@ -54,6 +54,7 @@ void* memcpy(void*, const void*, size_t);
 void flush_dcache_all(void);
 void invalidate_dcache_range(unsigned long start, unsigned long stop);
 void flush_dcache_range(unsigned long start, unsigned long stop);
+u64 get_tcr(int el, u64 *pips, u64 *pva_bits);
 #endif
 
 void app_startup(char * const *);

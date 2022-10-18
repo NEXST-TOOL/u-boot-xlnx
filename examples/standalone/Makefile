@@ -27,7 +27,7 @@ LIB	= $(obj)/libstubs.o
 
 LIBOBJS-$(CONFIG_PPC) += ppc_longjmp.o ppc_setjmp.o
 LIBOBJS-y += stubs.o
-LIBOBJS-$(CONFIG_ARCH_ZYNQMP) += sha3.o
+LIBOBJS-$(CONFIG_ARCH_ZYNQMP) += sha3.o el1_mmu.o check_mmu.o
 
 targets += $(patsubst $(obj)/%,%,$(LIB)) $(COBJS) $(LIBOBJS-y)
 

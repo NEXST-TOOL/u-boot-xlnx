@@ -90,4 +90,5 @@
   EXPORT_FUNC(flush_dcache_all, void, flush_dcache_all, void)
   EXPORT_FUNC(invalidate_dcache_range, void, invalidate_dcache_range, unsigned long, unsigned long)
   EXPORT_FUNC(flush_dcache_range, void, flush_dcache_range, unsigned long, unsigned long)
+  EXPORT_FUNC(get_tcr, u64, get_tcr, int, u64 *, u64 *)
 #endif
