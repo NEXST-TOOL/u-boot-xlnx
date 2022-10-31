@@ -9,6 +9,10 @@
 #include <phy_interface.h>
 #endif
 
+#ifdef CONFIG_ARCH_ZYNQMP
+#include <asm/armv8/mmu.h>
+#endif
+
 #include <irq_func.h>
 
 struct spi_slave;
@@ -55,6 +59,7 @@ void flush_dcache_all(void);
 void invalidate_dcache_range(unsigned long start, unsigned long stop);
 void flush_dcache_range(unsigned long start, unsigned long stop);
 u64 get_tcr(int el, u64 *pips, u64 *pva_bits);
+void mmu_setup_new_map(struct mm_region *map);
 #endif
 
 void app_startup(char * const *);

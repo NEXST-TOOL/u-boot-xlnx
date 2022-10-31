@@ -101,7 +101,7 @@ static int level2shift(int level)
 	return (12 + 9 * (3 - level));
 }
 
-static u64 *find_pte(u64 addr, int level)
+static u64 *find_pte(u64 addr, int level, int debug)
 {
 	int start_level = 0;
 	u64 *pte;
@@ -109,7 +109,8 @@ static u64 *find_pte(u64 addr, int level)
 	u64 va_bits;
 	int i;
 
-	debug("addr=%llx level=%d\n", addr, level);
+	if (debug)
+		printf("addr=%llx level=%d\n", addr, level);
 
 	get_tcr(0, NULL, &va_bits);
 	if (va_bits < 39)
@@ -123,7 +124,9 @@ static u64 *find_pte(u64 addr, int level)
 	for (i = start_level; i < 4; i++) {
 		idx = (addr >> level2shift(i)) & 0x1FF;
 		pte += idx;
-		debug("idx=%llx PTE %p at level %d: %llx\n", idx, pte, i, *pte);
+		
+		if (debug)
+			printf("idx=%llx PTE %p at level %d: %llx\n", idx, pte, i, *pte);
 
 		/* Found it */
 		if (i == level)
@@ -211,7 +214,7 @@ static void add_map(struct mm_region *map)
 	u64 *new_table;
 
 	while (size) {
-		pte = find_pte(virt, 0);
+		pte = find_pte(virt, 0, 0);
 		if (pte && (pte_type(pte) == PTE_TYPE_FAULT)) {
 			debug("Creating table for virt 0x%llx\n", virt);
 			new_table = create_table();
@@ -219,7 +222,7 @@ static void add_map(struct mm_region *map)
 		}
 
 		for (level = 1; level < 4; level++) {
-			pte = find_pte(virt, level);
+			pte = find_pte(virt, level, 0);
 			if (!pte)
 				panic("pte not found\n");
 
@@ -378,6 +381,8 @@ void setup_pgtables(void)
 	/* Now add all MMU table entries one after another to the table */
 	for (i = 0; mem_map[i].size || mem_map[i].attrs; i++)
 		add_map(&mem_map[i]);
+
+	find_pte(0x50000000ULL, 3, 1);
 }
 
 static void setup_all_pgtables(void)
@@ -405,6 +410,8 @@ static void setup_all_pgtables(void)
 __weak void mmu_setup(void)
 {
 	int el;
+	u64 *el2_va = (void *)(0x50000000);
+	u64 el2_pa;
 
 	/* Set up page tables only once */
 	if (!gd->arch.tlb_fillptr)
@@ -416,6 +423,26 @@ __weak void mmu_setup(void)
 
 	/* enable the mmu */
 	set_sctlr(get_sctlr() | CR_M);
+
+	__asm_invalidate_tlb_all();
+
+        asm volatile("mrs %0, par_el1" : "=r" (el2_pa));
+	isb();
+	printf("%s: el2_pa = 0x%llx\n", __func__, el2_pa);
+
+	*el2_va = 0x400;
+	asm volatile("at s1e2w, %0" : : "r" (el2_va));
+	isb();
+        asm volatile("mrs %0, par_el1" : "=r" (el2_pa));
+	isb();
+	printf("%s: el2_pa = 0x%llx\n", __func__, el2_pa);
+
+	printf("*el2_va = %llx\n", *el2_va);
+	asm volatile("at s1e2r, %0" : : "r" (el2_va));
+	isb();
+        asm volatile("mrs %0, par_el1" : "=r" (el2_pa));
+	isb();
+	printf("%s: el2_pa = 0x%llx\n", __func__, el2_pa);
 }
 
 /*
@@ -519,7 +546,7 @@ static u64 set_one_region(u64 start, u64 size, u64 attrs, bool flag, int level)
 {
 	int levelshift = level2shift(level);
 	u64 levelsize = 1ULL << levelshift;
-	u64 *pte = find_pte(start, level);
+	u64 *pte = find_pte(start, level, 0);
 
 	/* Can we can just modify the current level block PTE? */
 	if (is_aligned(start, size, levelsize)) {
@@ -549,6 +576,37 @@ static u64 set_one_region(u64 start, u64 size, u64 attrs, bool flag, int level)
 
 	/* Roll on to the next page table level */
 	return 0;
+}
+
+void mmu_setup_new_map(struct mm_region *map)
+{
+	if (!gd->arch.tlb_emerg)
+		panic("Emergency page table not setup.");
+
+	/*
+	 * We can not modify page tables that we're currently running on,
+	 * so we first need to switch to the "emergency" page tables where
+	 * we can safely modify our primary page tables and then switch back
+	 */
+	__asm_switch_ttbr(gd->arch.tlb_emerg);
+
+	/*
+	 * Add a VA-PA mapping to primary page tables
+	 */
+	add_map(map);
+
+	/* We're done modifying page tables, switch back to our primary ones */
+	__asm_switch_ttbr(gd->arch.tlb_addr);
+
+	/*
+	 * flush dcache occupied by tlb addr
+	 */
+	flush_dcache_range(gd->arch.tlb_addr,
+			   gd->arch.tlb_addr + gd->arch.tlb_size);
+
+	__asm_invalidate_tlb_all();
+
+	find_pte(map->virt, 3, 1);
 }
 
 void mmu_set_region_dcache_behaviour(phys_addr_t start, size_t size,

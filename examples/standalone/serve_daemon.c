@@ -8,7 +8,8 @@
 #include <exports.h>
 #include <sha3.h>
 
-#include <check_mmu.h>
+#include <el2_mmu.h>
+#include <smmu.h>
 
 #if defined(CONFIG_ARCH_ZYNQMP)
 #define RV_ARM_IPC_BASE   0x80000000
@@ -72,14 +73,24 @@ int serve_daemon ()
 
 	//check EL=2 MMU page table walks
 	el2_va = 0x50000000;
-	asm volatile("at s1e2r, %0" : : "r" (el2_va));
+	asm volatile("at s1e2r, %0" : : "r" (el2_va) : "memory");
+	dsb();
+        asm volatile("mrs %0, par_el1" : "=r" (el2_pa) : : "memory");
 	isb();
-        asm volatile("mrs %0, par_el1" : "=r" (el2_pa));
-	dmb();
 
 	printf("%s: el2_pa = 0x%llx\n", __func__, el2_pa);
 
-	direct_map_test();
+	mmu_setup_new_map(&check_map);
+
+	el2_va = check_map.virt + 0x2000;
+	asm volatile("at s1e2r, %0" : : "r" (el2_va));
+	dsb();
+        asm volatile("mrs %0, par_el1" : "=r" (el2_pa));
+	isb();
+
+	printf("%s: el2_pa = 0x%llx\n", __func__, el2_pa);
+
+	smmu_init_ctx();
 
         /*for (;;) {
 #if defined(CONFIG_ARCH_ZYNQMP)
