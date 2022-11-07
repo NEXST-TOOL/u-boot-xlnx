@@ -140,7 +140,11 @@ static void smmu_probe(struct arm_smmu *smmu)
 			readl(smmu->base + R_SMMU500_SMMU_SIDR2));
 }
 
-static void arm_smmu_write_context_bank(struct arm_smmu *smmu, int idx)
+static void arm_smmu_address_translation(struct arm_smmu *smmu, u64 vaddr)
+{
+}
+
+static void arm_smmu_write_context_bank(struct arm_smmu *smmu, int idx, int stage)
 {
 	u64 reg;
 	struct arm_smmu_cb *cb = &smmu->cbs[idx];
@@ -155,8 +159,6 @@ static void arm_smmu_write_context_bank(struct arm_smmu *smmu, int idx)
 		return;
 	}
 
-	//we attempt to use stage-2 translation only in our current design
-
 	/* CBA2R */
 	/*we assume ARM_SMMU_CTX_FMT_AARCH64*/
 	reg = SMMU500_SMMU_CBA2R0_VA64_MASK;
@@ -166,7 +168,15 @@ static void arm_smmu_write_context_bank(struct arm_smmu *smmu, int idx)
 	printf("%s: reg %p = %llx\n", __func__, smmu->base + ARM_SMMU_CBA2R(idx), reg);
 
 	/* CBAR */
-	reg = (CBAR_TYPE_S2_TRANS << SMMU500_SMMU_CBAR0_TYPE_SHIFT);
+	if (stage == 1)
+		reg = (CBAR_TYPE_S1_TRANS_S2_BYPASS << SMMU500_SMMU_CBAR0_TYPE_SHIFT);
+	else
+		reg = (CBAR_TYPE_S2_TRANS << SMMU500_SMMU_CBAR0_TYPE_SHIFT);
+
+	if (stage == 1)
+		reg |= (CBAR_S1_BPSHCFG_NSH << SMMU500_SMMU_CBAR0_BPSHCFG_CBNDX_1_0_SHIFT) |
+		       (CBAR_S1_MEMATTR_WB << SMMU500_SMMU_CBAR0_MEMATTR_CBNDX_7_4_SHIFT);
+
 	smmu_writel(smmu->base + ARM_SMMU_CBAR(idx), reg);
 
 	reg = readl(smmu->base + ARM_SMMU_CBAR(idx));
@@ -177,6 +187,14 @@ static void arm_smmu_write_context_bank(struct arm_smmu *smmu, int idx)
 	 * We must write this before the TTBRs, since it determines the
 	 * access behaviour of some fields (in particular, ASID[15:8]).
 	 */
+	if (stage == 1)
+	{
+		smmu_writel(smmu->base + ARM_SMMU_CB_TCR2(idx), cb->tcr[1]);
+	
+		reg = readl(smmu->base + ARM_SMMU_CB_TCR2(idx));
+		printf("%s: reg %p = %llx\n", __func__, smmu->base + ARM_SMMU_CB_TCR2(idx), reg);
+	}
+
 	smmu_writel(smmu->base + ARM_SMMU_CB_TCR(idx), cb->tcr[0]);
 
 	reg = readl(smmu->base + ARM_SMMU_CB_TCR(idx));
@@ -188,6 +206,28 @@ static void arm_smmu_write_context_bank(struct arm_smmu *smmu, int idx)
 	reg = readq(smmu->base + ARM_SMMU_CB_TTBR0(idx));
 	printf("%s: reg %p = %llx\n", __func__, smmu->base + ARM_SMMU_CB_TTBR0(idx), reg);
 
+	if (stage == 1)
+	{
+		writeq(cb->ttbr[1], smmu->base + ARM_SMMU_CB_TTBR1(idx));
+	
+		reg = readq(smmu->base + ARM_SMMU_CB_TTBR1(idx));
+		printf("%s: reg %p = %llx\n", __func__, smmu->base + ARM_SMMU_CB_TTBR1(idx), reg);
+	}
+
+	/* MAIR (stage-1 only) */
+	if (stage == 1)
+	{
+		smmu_writel(smmu->base + ARM_SMMU_CB_MAIR0(idx), cb->mair[0]);
+	
+		reg = readl(smmu->base + ARM_SMMU_CB_MAIR0(idx));
+		printf("%s: reg %p = %llx\n", __func__, smmu->base + ARM_SMMU_CB_MAIR0(idx), reg);
+
+		smmu_writel(smmu->base + ARM_SMMU_CB_MAIR1(idx), cb->mair[1]);
+	
+		reg = readl(smmu->base + ARM_SMMU_CB_MAIR1(idx));
+		printf("%s: reg %p = %llx\n", __func__, smmu->base + ARM_SMMU_CB_MAIR1(idx), reg);
+	}
+
 	/* SCTLR */
 	reg = SMMU500_SMMU_CB0_SCTLR_M_MASK |
 	      SMMU500_SMMU_CB0_SCTLR_TRE_MASK |
@@ -195,39 +235,64 @@ static void arm_smmu_write_context_bank(struct arm_smmu *smmu, int idx)
 	      SMMU500_SMMU_CB0_SCTLR_CFRE_MASK |
 	      SMMU500_SMMU_CB0_SCTLR_CFIE_MASK;
 
+	if (stage == 1)
+		reg |= SMMU500_SMMU_CB0_SCTLR_ASIDPNE_MASK;
+
 	smmu_writel(smmu->base + ARM_SMMU_CB_SCTLR(idx), reg);
 
 	reg = readl(smmu->base + ARM_SMMU_CB_SCTLR(idx));
 	printf("%s: reg %p = %llx\n", __func__, smmu->base + ARM_SMMU_CB_SCTLR(idx), reg);
 }
 
-static void smmu_set_tcr(struct arm_smmu_cb *smmu_cb)
+static void smmu_set_tcr(struct arm_smmu_cb *smmu_cb, int stage)
 {
-	u32 reg;
+	u64 reg;
 
-	//for stage-2 translation, EAE (31-bit) is set to 1
-	reg = STAGE_2_TCR_RES1 | TCR_SHARED_INNER | TCR_ORGN_WBWA | TCR_IRGN_WBWA;
+	reg = TCR_ORGN_WBWA | TCR_IRGN_WBWA;
+
+	if (stage == 1)
+		reg |= TCR_SHARED_OUTER;
+	else
+		//for stage-2 translation, EAE (31-bit) is set to 1
+		reg |= TCR_SHARED_INNER | STAGE_2_TCR_RES1;
 
 	//we use 4KB page granule
 	reg |= TCR_TG0_4K;
 
 	//we use 40-bit physical address (oas) 
-	//required in ARM's VTBR, not required in SMMU's TTBR
-	reg |= (2ULL << SMMU500_SMMU_CB0_TCR_LPAE_T1SZ_2_0_PASIZE_SHIFT);
+	if (stage == 1)
+		reg |= (2ULL << (SMMU500_SMMU_CB0_TCR2_PASIZE_SHIFT + 32));
+	else
+		reg |= (2ULL << SMMU500_SMMU_CB0_TCR_LPAE_T1SZ_2_0_PASIZE_SHIFT);
 
 	//we use 48-bit virtual address (ias)
 	reg |= 16ULL;
 
-	//lookup start level = 0
-	reg |= (0x10 << SMMU500_SMMU_CB0_TCR_LPAE_SL0_0_SHIFT);
-	
+	if (stage == 1)
+		reg |= SMMU500_SMMU_CB0_TCR_LPAE_EPD1_MASK;
 
-	smmu_cb->tcr[0] = reg;
+	//lookup start level = 0
+	if (stage == 2)
+		reg |= (0x2 << SMMU500_SMMU_CB0_TCR_LPAE_SL0_0_SHIFT);
+
+	smmu_cb->tcr[0] = (reg & 0xFFFFFFFF);
+	
+	if (stage == 1)
+		smmu_cb->tcr[1] = (reg >> 32);
 }
 
-static void smmu_set_ttbr(struct arm_smmu_cb *smmu_cb, unsigned long pg_table)
+static void smmu_set_ttbr(struct arm_smmu_cb *smmu_cb, unsigned long pg_table, int stage)
 {
 	smmu_cb->ttbr[0] = (unsigned long long)pg_table;
+	if (stage == 1)
+		smmu_cb->ttbr[1] = 0;
+}
+
+static void smmu_set_mair(struct arm_smmu_cb *smmu_cb)
+{
+	u64 attr = MEMORY_ATTRIBUTES;
+	smmu_cb->mair[0] = (attr & 0xFFFFFFFF);
+	smmu_cb->mair[1] = (attr >> 32);
 }
 
 static void arm_smmu_write_s2cr(struct arm_smmu *smmu, int idx) 
@@ -379,7 +444,7 @@ static void smmu_device_reset(struct arm_smmu *smmu)
 
 	/* Make sure all context banks are disabled and clear CB_FSR  */
 	for (i = 0; i < smmu->num_context_banks; ++i) {
-		arm_smmu_write_context_bank(smmu, i);
+		arm_smmu_write_context_bank(smmu, i, 0);
 		smmu_writel(smmu->base + ARM_SMMU_CB_FSR(i), FSR_FAULT);
 	}
 
@@ -426,6 +491,7 @@ void smmu_init_ctx(unsigned long pg_table)
 	//uint32_t r;
 	
 	int tee_idx, stream_idx, context_bank;
+	int stage = 2;
 	int i;
 
 	u32 tee_id = 0, stream_id;
@@ -468,7 +534,6 @@ void smmu_init_ctx(unsigned long pg_table)
 	/* initialize stream context */
 	smmu.s2crs[stream_idx].type = S2CR_TYPE_TRANS; 
 	smmu.s2crs[stream_idx].privcfg = S2CR_PRIVCFG_DEFAULT;
-	//using context bank 1
 	smmu.s2crs[stream_idx].cbndx = context_bank;
 
 	/* It worked! Now, poke the actual hardware */
@@ -477,11 +542,13 @@ void smmu_init_ctx(unsigned long pg_table)
 	/* initialize context bank */
 	smmu_cb = &smmu.cbs[context_bank];
 
-	/* we assume to use Stage 2 only translation */
-	smmu_set_tcr(smmu_cb);
-	smmu_set_ttbr(smmu_cb, pg_table);
+	/* setup stage 1 or stage 2 translation context */
+	smmu_set_tcr(smmu_cb, stage);
+	if (stage == 1)
+		smmu_set_mair(smmu_cb);
+	smmu_set_ttbr(smmu_cb, pg_table, stage);
 	smmu_cb->configured = 1;
-	arm_smmu_write_context_bank(&smmu, context_bank);
+	arm_smmu_write_context_bank(&smmu, context_bank, stage);
 
 	//checkup address mapping via address translation service
 

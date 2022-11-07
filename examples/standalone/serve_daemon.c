@@ -90,7 +90,7 @@ int serve_daemon ()
 
 	printf("%s: el2_pa = 0x%llx\n", __func__, el2_pa);
 
-	smmu_init_ctx();
+	smmu_init_ctx(ttbr0_el2);
 
         /*for (;;) {
 #if defined(CONFIG_ARCH_ZYNQMP)
