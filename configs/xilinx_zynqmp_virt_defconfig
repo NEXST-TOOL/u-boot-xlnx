@@ -137,3 +137,4 @@ CONFIG_PANIC_HANG=y
 CONFIG_SPL_GZIP=y
 CONFIG_OF_LIBFDT_OVERLAY=y
 CONFIG_EFI_LOADER_BOUNCE_BUFFER=y
+CONFIG_BOOTCOMMAND="setenv ipaddr 10.30.4.111;setenv serverip 10.30.4.133;tftp 0x80000 system.bit;fpga loadb 0 0x80000 $filesize;fatload mmc 0:1 0x10000000 RV_BOOT.bin;dcache flush;icache flush;dcache flush;icache flush;fatload mmc 0:1 0xc100000 serve_daemon.bin;dcache flush;icache flush;dcache flush;icache flush;go 0xc100000"
