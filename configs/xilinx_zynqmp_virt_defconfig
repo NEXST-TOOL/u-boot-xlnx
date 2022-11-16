@@ -137,4 +137,4 @@ CONFIG_PANIC_HANG=y
 CONFIG_SPL_GZIP=y
 CONFIG_OF_LIBFDT_OVERLAY=y
 CONFIG_EFI_LOADER_BOUNCE_BUFFER=y
-CONFIG_BOOTCOMMAND="load mmc 0 0x10000000 env.txt;env import 0x10000000 $filesize;setenv -f eth1addr $mac1;setenv ipaddr $my_ip;setenv serverip $server_ip;tftpboot 0x80000 system.bit;fpga loadb 0 0x80000 $filesize;tftpboot 0x10000000 RV_BOOT.bin;dcache flush;icache flush;dcache flush;icache flush;tftpboot 0xc100000 serve_daemon.bin;dcache flush;icache flush;dcache flush;icache flush;go 0xc100000"
+CONFIG_BOOTCOMMAND="load mmc 0 0x10000000 env.txt;env import 0x10000000 $filesize;setenv -f eth1addr $mac1_arm;setenv ipaddr $my_ip;setenv serverip $server_ip;tftpboot 0x80000 system.bit;fpga loadb 0 0x80000 $filesize;tftpboot 0x10000000 RV_BOOT.bin;dcache flush;icache flush;dcache flush;icache flush;tftpboot 0xc100000 serve_daemon.bin;dcache flush;icache flush;dcache flush;icache flush;go 0xc100000"
