@@ -185,7 +185,7 @@ struct emac_bd {
 /* Setup the first free TX descriptor */
 #define TX_FREE_DESC	2
 
-#if defined(CONFIG_SERVE_ZYNQMP)
+#if defined(CONFIG_TARGET_ICT_SERVE)
 #define MMU_SECTION_SHIFT  20
 #endif
 /* Initialized, rxbd_current, rx_first_buf must be 0 after init */
@@ -576,7 +576,7 @@ static int zynq_gem_recv(struct udevice *dev, int flags, uchar **packetp)
 	addr &= ~(ARCH_DMA_MINALIGN - 1);
 
 	*packetp = (uchar *)(uintptr_t)addr;
-#if defined(CONFIG_ARM64)
+#if defined(CONFIG_ARM)
 	invalidate_dcache_range(addr, addr + roundup(PKTSIZE_ALIGN, ARCH_DMA_MINALIGN));
 	barrier();
 #endif
@@ -695,7 +695,7 @@ static int zynq_gem_probe(struct udevice *dev)
 		ret = -ENOMEM;
 		goto err1;
 	}
-#if defined(CONFIG_ARM64)
+#if defined(CONFIG_ARM)
 	mmu_set_region_dcache_behaviour((phys_addr_t)bd_space,
 					BD_SPACE, DCACHE_OFF);
 #endif
