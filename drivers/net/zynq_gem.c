@@ -361,9 +361,7 @@ static int zynq_gem_init(struct udevice *dev)
 	if (!priv->dma_64bit) {
 		printf("ERR: %s: Using 64-bit DMA but HW doesn't support it\n",
 		       __func__);
-#if defined(CONFIG_ARM)
 		return -EINVAL;
-#endif
 	}
 #else
 	if (priv->dma_64bit)
