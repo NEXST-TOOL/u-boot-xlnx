@@ -171,7 +171,7 @@ struct zynq_gem_regs {
 struct emac_bd {
 	u32 addr; /* Next descriptor pointer */
 	u32 status;
-#if defined(CONFIG_PHYS_64BIT)
+#if defined(CONFIG_PHYS_64BIT) && (defined(CONFIG_ARM64) || defined(CONFIG_SERVE_ZYNQMP))
 	u32 addr_hi;
 	u32 reserved;
 #endif
@@ -357,7 +357,7 @@ static int zynq_gem_init(struct udevice *dev)
 	else
 		priv->dma_64bit = false;
 
-#if defined(CONFIG_PHYS_64BIT)
+#if defined(CONFIG_PHYS_64BIT) && (defined(CONFIG_ARM64) || defined(CONFIG_SERVE_ZYNQMP))
 	if (!priv->dma_64bit) {
 		printf("ERR: %s: Using 64-bit DMA but HW doesn't support it\n",
 		       __func__);
@@ -400,7 +400,7 @@ static int zynq_gem_init(struct udevice *dev)
 			priv->rx_bd[i].addr =
 					(lower_32_bits((ulong)(priv->rxbuffers)
 							+ (i * PKTSIZE_ALIGN)));
-#if defined(CONFIG_PHYS_64BIT)
+#if defined(CONFIG_PHYS_64BIT) && (defined(CONFIG_ARM64) || defined(CONFIG_SERVE_ZYNQMP))
 			priv->rx_bd[i].addr_hi =
 					(upper_32_bits((ulong)(priv->rxbuffers)
 							+ (i * PKTSIZE_ALIGN)));
@@ -410,7 +410,7 @@ static int zynq_gem_init(struct udevice *dev)
 		priv->rx_bd[--i].addr |= ZYNQ_GEM_RXBUF_WRAP_MASK;
 		/* Write RxBDs to IP */
 		writel(lower_32_bits((ulong)priv->rx_bd), &regs->rxqbase);
-#if defined(CONFIG_PHYS_64BIT)
+#if defined(CONFIG_PHYS_64BIT) && (defined(CONFIG_ARM64) || defined(CONFIG_SERVE_ZYNQMP))
 		writel(upper_32_bits((ulong)priv->rx_bd), &regs->upper_rxqbase);
 #endif
 
@@ -422,7 +422,7 @@ static int zynq_gem_init(struct udevice *dev)
 
 		/* Disable the second priority queue */
 		dummy_tx_bd->addr = 0;
-#if defined(CONFIG_PHYS_64BIT)
+#if defined(CONFIG_PHYS_64BIT) && (defined(CONFIG_ARM64) || defined(CONFIG_SERVE_ZYNQMP))
 		dummy_tx_bd->addr_hi = 0;
 #endif
 		dummy_tx_bd->status = ZYNQ_GEM_TXBUF_WRAP_MASK |
@@ -431,7 +431,7 @@ static int zynq_gem_init(struct udevice *dev)
 
 		dummy_rx_bd->addr = ZYNQ_GEM_RXBUF_WRAP_MASK |
 				ZYNQ_GEM_RXBUF_NEW_MASK;
-#if defined(CONFIG_PHYS_64BIT)
+#if defined(CONFIG_PHYS_64BIT) && (defined(CONFIG_ARM64) || defined(CONFIG_SERVE_ZYNQMP))
 		dummy_rx_bd->addr_hi = 0;
 #endif
 		dummy_rx_bd->status = 0;
@@ -513,14 +513,14 @@ static int zynq_gem_send(struct udevice *dev, void *ptr, int len)
 	memset(priv->tx_bd, 0, sizeof(struct emac_bd));
 
 	priv->tx_bd->addr = lower_32_bits((ulong)ptr);
-#if defined(CONFIG_PHYS_64BIT)
+#if defined(CONFIG_PHYS_64BIT) && (defined(CONFIG_ARM64) || defined(CONFIG_SERVE_ZYNQMP))
 	priv->tx_bd->addr_hi = upper_32_bits((ulong)ptr);
 #endif
 	priv->tx_bd->status = (len & ZYNQ_GEM_TXBUF_FRMLEN_MASK) |
 			       ZYNQ_GEM_TXBUF_LAST_MASK;
 	/* Dummy descriptor to mark it as the last in descriptor chain */
 	current_bd->addr = 0x0;
-#if defined(CONFIG_PHYS_64BIT)
+#if defined(CONFIG_PHYS_64BIT) && (defined(CONFIG_ARM64) || defined(CONFIG_SERVE_ZYNQMP))
 	current_bd->addr_hi = 0x0;
 #endif
 	current_bd->status = ZYNQ_GEM_TXBUF_WRAP_MASK |
@@ -529,7 +529,7 @@ static int zynq_gem_send(struct udevice *dev, void *ptr, int len)
 
 	/* setup BD */
 	writel(lower_32_bits((ulong)priv->tx_bd), &regs->txqbase);
-#if defined(CONFIG_PHYS_64BIT)
+#if defined(CONFIG_PHYS_64BIT) && (defined(CONFIG_ARM64) || defined(CONFIG_SERVE_ZYNQMP))
 	writel(upper_32_bits((ulong)priv->tx_bd), &regs->upper_txqbase);
 #endif
 
@@ -573,7 +573,7 @@ static int zynq_gem_recv(struct udevice *dev, int flags, uchar **packetp)
 		return -1;
 	}
 
-#if defined(CONFIG_PHYS_64BIT)
+#if defined(CONFIG_PHYS_64BIT) && (defined(CONFIG_ARM64) || defined(CONFIG_SERVE_ZYNQMP))
 	addr = (dma_addr_t)((current_bd->addr & ZYNQ_GEM_RXBUF_ADD_MASK)
 		      | ((dma_addr_t)current_bd->addr_hi << 32));
 #else
@@ -610,7 +610,7 @@ static int zynq_gem_free_pkt(struct udevice *dev, uchar *packet, int length)
 	}
 
 	/* Flush the cache for the packet as well */
-#if defined(CONFIG_PHYS_64BIT)
+#if defined(CONFIG_PHYS_64BIT) && (defined(CONFIG_ARM64) || defined(CONFIG_SERVE_ZYNQMP))
 	addr = (dma_addr_t)((current_bd->addr & ZYNQ_GEM_RXBUF_ADD_MASK)
 		| ((dma_addr_t)current_bd->addr_hi << 32));
 #else
