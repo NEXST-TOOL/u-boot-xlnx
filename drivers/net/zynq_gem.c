@@ -85,11 +85,15 @@
 /* Set with binary 00011000 to use 1536 byte(1*max length frame/buffer) */
 #define ZYNQ_GEM_DMACR_RXBUF		0x00180000
 
-#if defined(CONFIG_PHYS_64BIT)
+/*ARMv8 or RV64 on ZynqMP*/
+#if defined(CONFIG_PHYS_64BIT) && (defined(CONFIG_ARM64) || defined(CONFIG_SERVE_ZYNQMP))
 # define ZYNQ_GEM_DMA_BUS_WIDTH		BIT(30) /* 64 bit bus */
+/*ARMv7 or RV64 on Zynq*/
 #else
 # define ZYNQ_GEM_DMA_BUS_WIDTH		(0 << 30) /* 32 bit bus */
 #endif
+
+/*FIXME: We use driver code of 64-bit DMA engine for RV64 on Zynq*/
 
 #define ZYNQ_GEM_DMACR_INIT		(ZYNQ_GEM_DMACR_BLENGTH | \
 					ZYNQ_GEM_DMACR_RXSIZE | \
