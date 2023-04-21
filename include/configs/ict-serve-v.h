@@ -1,14 +1,14 @@
 /* SPDX-License-Identifier: GPL-2.0+ */
 /*
- * Copyright (c) 2019 Institute of Computing Technology, Chinese Academy of Sciences and its affiliates.
+ * Copyright (c) 2023 Institute of Computing Technology, Chinese Academy of Sciences and its affiliates.
  *
  * Authors:
  *  Yisong Chang <changyisong@ict.ac.cn>
  * 
  */
 
-#ifndef __ICT_SERVE_H_H
-#define __ICT_SERVE_H_H
+#ifndef __ICT_SERVE_V_H
+#define __ICT_SERVE_V_H
 
 #include <linux/sizes.h>
 
@@ -19,4 +19,4 @@
 
 #include <configs/ict-serve.h>
 
-#endif /* __ICT_SERVE_H_H */
+#endif /* __ICT_SERVE_V_H */

@@ -15,7 +15,7 @@
 #define CONFIG_SYS_SDRAM_BASE 0xB0000000UL
 
 #define SERVE_SCRIPT_ADDR \
-        "scriptaddr=0xB0400000UL\0"
+        "scriptaddr=0xB0400000\0"
 
 #include <configs/ict-serve.h>
 

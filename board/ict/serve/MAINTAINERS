@@ -12,4 +12,4 @@ F:	include/configs/ict-serve-h.h
 F:	include/configs/ict-serve-r.h
 F:      include/configs/ict-serve-i.h
 F:      include/configs/ict-serve-s.h
-
+F:      include/configs/ict-serve-v.h

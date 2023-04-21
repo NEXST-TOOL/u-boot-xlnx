@@ -36,10 +36,16 @@
 # define BOOT_TARGET_DEVICES_MMC(func)
 #endif
 
+#if defined(CONFIG_NVME)
+# define BOOT_TARGET_DEVICES_NVME(func)	func(NVME, nvme, 0)
+#else
+# define BOOT_TARGET_DEVICES_NVME(func)
+#endif
 
 #define BOOT_TARGET_DEVICES(func) \
+	BOOT_TARGET_DEVICES_MMC(func) \
+	BOOT_TARGET_DEVICES_NVME(func) \
 	BOOT_TARGET_DEVICES_DHCP(func) \
-	BOOT_TARGET_DEVICES_MMC(func)
 
 #include <config_distro_bootcmd.h>
 
